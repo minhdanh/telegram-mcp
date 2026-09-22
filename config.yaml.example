@@ -1,0 +1,14 @@
+# Telegram MCP Server Configuration
+
+# Telegram Bot API Token obtained from @BotFather
+telegram_bot_token: "123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ"
+
+# List of channel usernames (with or without '@'), channel IDs, or titles to monitor.
+# Leave empty or use ["*"] to monitor all channels where the bot is added as Administrator.
+monitored_channels:
+  - "@example_channel"
+  - "-1001234567890"
+
+# Maximum number of messages to retain in memory (ring buffer capacity).
+# Oldest messages will be dropped when capacity is exceeded.
+buffer_size: 200

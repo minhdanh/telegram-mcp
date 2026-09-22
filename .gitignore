@@ -1,0 +1,6 @@
+/target
+config.yaml
+!config.yaml.example
+**/*.rs.bk
+*.log
+.DS_Store
