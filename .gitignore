@@ -4,3 +4,4 @@ config.yaml
 **/*.rs.bk
 *.log
 .DS_Store
+/bin/

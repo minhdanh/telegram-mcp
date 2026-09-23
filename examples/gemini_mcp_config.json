@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "telegram": {
+      "command": "/Users/YOUR_USERNAME/.local/bin/telegram-mcp",
+      "args": [
+        "--config",
+        "/Users/YOUR_USERNAME/.config/telegram-mcp/config.yaml"
+      ]
+    }
+  }
+}

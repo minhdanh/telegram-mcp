@@ -20,9 +20,26 @@ use config::Config;
     version
 )]
 struct Args {
-    /// Path to YAML configuration file
-    #[arg(short, long, default_value = "config.yaml")]
-    config: PathBuf,
+    /// Path to YAML configuration file [default: ./config.yaml or ~/.config/telegram-mcp/config.yaml]
+    #[arg(short, long)]
+    config: Option<PathBuf>,
+}
+
+fn resolve_config_path(cli_path: Option<PathBuf>) -> PathBuf {
+    if let Some(p) = cli_path {
+        return p;
+    }
+    let local = PathBuf::from("config.yaml");
+    if local.exists() {
+        return local;
+    }
+    if let Ok(home) = std::env::var("HOME") {
+        let xdg = PathBuf::from(home).join(".config/telegram-mcp/config.yaml");
+        if xdg.exists() {
+            return xdg;
+        }
+    }
+    local
 }
 
 #[tokio::main]
@@ -42,14 +59,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .init();
 
     let args = Args::parse();
-    info!(config_file = ?args.config, "Loading configuration...");
+    let config_path = resolve_config_path(args.config);
+    info!(config_file = ?config_path, "Loading configuration...");
 
-    let config = match Config::load_from_file(&args.config) {
+    let config = match Config::load_from_file(&config_path) {
         Ok(cfg) => Arc::new(cfg),
         Err(e) => {
             error!(
                 error = %e,
-                config_path = ?args.config,
+                config_path = ?config_path,
                 "Failed to load configuration. Please ensure the config file exists and is valid YAML."
             );
             std::process::exit(1);

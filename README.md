@@ -43,9 +43,21 @@ This project implements a **forward-cache pattern**:
 
 ## Prerequisites
 
-- [Rust & Cargo](https://rustup.rs/) (edition 2021, Rust 1.75+)
 - A Telegram Bot token from [@BotFather](https://t.me/botfather)
 - Admin permissions for the bot in your monitored channel(s)
+- *(Optional - developers only)* [Rust & Cargo](https://rustup.rs/) (edition 2021, Rust 1.75+) if compiling from source
+
+---
+
+## macOS Quick Start (No Rust Required)
+
+For Mac users (Apple Silicon & Intel), you do **not** need to install Rust. An automated setup script downloads the pre-built binary from GitHub Releases, configures permissions, and outputs your ready-to-copy client config:
+
+```bash
+./scripts/setup-mac.sh
+```
+
+For full details, see the [macOS Guide (MACOS_GUIDE.md)](MACOS_GUIDE.md).
 
 ---
 
@@ -88,9 +100,9 @@ buffer_size: 200
 
 ---
 
-## Building
+## Building from Source (Optional)
 
-Build the release binary:
+If you are developing or compiling manually:
 
 ```bash
 cargo build --release
@@ -102,29 +114,53 @@ The compiled binary will be located at `target/release/telegram-mcp`.
 
 ## MCP Client Configuration
 
-### Gemini Spark (`mcp_config.json`)
+Sample configuration files are provided in the [`examples/`](examples/) directory.
 
-Add the server to your `mcp_config.json`:
+> [!TIP]
+> **macOS Note:** Always use full absolute paths starting with `/Users/...` in client configuration files. GUI apps launched from macOS Finder/Dock do not expand `~` or inherit custom `$PATH` from shell startup files.
+
+### Claude Desktop (`claude_desktop_config.json`)
+
+- **macOS location:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Sample template:** [`examples/claude_desktop_config.json`](examples/claude_desktop_config.json)
 
 ```json
 {
   "mcpServers": {
     "telegram": {
-      "command": "/absolute/path/to/telegram-mcp/target/release/telegram-mcp",
-      "args": ["--config", "/absolute/path/to/telegram-mcp/config.yaml"]
+      "command": "/Users/YOUR_USERNAME/.local/bin/telegram-mcp",
+      "args": ["--config", "/Users/YOUR_USERNAME/.config/telegram-mcp/config.yaml"]
     }
   }
 }
 ```
 
-### Claude Desktop (`claude_desktop_config.json`)
+### Cursor (`~/.cursor/mcp.json` or `.cursor/mcp.json`)
+
+- **Sample template:** [`examples/cursor_mcp.json`](examples/cursor_mcp.json)
 
 ```json
 {
   "mcpServers": {
     "telegram": {
-      "command": "/absolute/path/to/telegram-mcp/target/release/telegram-mcp",
-      "args": ["--config", "/absolute/path/to/telegram-mcp/config.yaml"]
+      "command": "/Users/YOUR_USERNAME/.local/bin/telegram-mcp",
+      "args": ["--config", "/Users/YOUR_USERNAME/.config/telegram-mcp/config.yaml"]
+    }
+  }
+}
+```
+
+### Gemini / Antigravity IDE (`mcp_config.json`)
+
+- **macOS location:** `~/.gemini/antigravity-ide/mcp_config.json`
+- **Sample template:** [`examples/gemini_mcp_config.json`](examples/gemini_mcp_config.json)
+
+```json
+{
+  "mcpServers": {
+    "telegram": {
+      "command": "/Users/YOUR_USERNAME/.local/bin/telegram-mcp",
+      "args": ["--config", "/Users/YOUR_USERNAME/.config/telegram-mcp/config.yaml"]
     }
   }
 }
