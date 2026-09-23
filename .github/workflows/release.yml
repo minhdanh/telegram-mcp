@@ -68,6 +68,7 @@ jobs:
           cp "target/${{ matrix.target }}/release/${{ matrix.artifact_name }}" "${STAGING}/"
           cp README.md "${STAGING}/"
           cp config.yaml.example "${STAGING}/"
+          cp LICENSE "${STAGING}/"
 
           ARCHIVE_NAME="${{ matrix.asset_name }}.tar.gz"
           tar -czf "${ARCHIVE_NAME}" -C "${STAGING}" .

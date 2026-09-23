@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Minh Danh"]
 description = "Model Context Protocol (MCP) server for real-time Telegram channel monitoring"
+license = "MIT"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
