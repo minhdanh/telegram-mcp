@@ -20,26 +20,50 @@ use config::Config;
     version
 )]
 struct Args {
-    /// Path to YAML configuration file [default: ./config.yaml or ~/.config/telegram-mcp/config.yaml]
+    /// Path to YAML configuration file [default: ~/.config/telegram-mcp/config.yaml or ./config.yaml]
     #[arg(short, long)]
     config: Option<PathBuf>,
 }
 
 fn resolve_config_path(cli_path: Option<PathBuf>) -> PathBuf {
+    // 1. Explicit CLI argument flag: --config <path>
     if let Some(p) = cli_path {
         return p;
     }
-    let local = PathBuf::from("config.yaml");
-    if local.exists() {
-        return local;
+
+    // 2. Explicit environment variable: TELEGRAM_MCP_CONFIG
+    if let Ok(env_path) = std::env::var("TELEGRAM_MCP_CONFIG") {
+        let p = PathBuf::from(env_path);
+        if p.exists() {
+            return p;
+        }
     }
-    if let Ok(home) = std::env::var("HOME") {
+
+    // 3. Prefer standard XDG user configuration: ~/.config/telegram-mcp/config.yaml
+    if let Ok(xdg_home) = std::env::var("XDG_CONFIG_HOME") {
+        let xdg = PathBuf::from(xdg_home).join("telegram-mcp/config.yaml");
+        if xdg.exists() {
+            return xdg;
+        }
+    } else if let Ok(home) = std::env::var("HOME") {
         let xdg = PathBuf::from(home).join(".config/telegram-mcp/config.yaml");
         if xdg.exists() {
             return xdg;
         }
     }
-    local
+
+    // 4. Fallback to current working directory: ./config.yaml
+    let local = PathBuf::from("config.yaml");
+    if local.exists() {
+        return local;
+    }
+
+    // 5. Default fallback to standard XDG path
+    if let Ok(home) = std::env::var("HOME") {
+        PathBuf::from(home).join(".config/telegram-mcp/config.yaml")
+    } else {
+        local
+    }
 }
 
 #[tokio::main]

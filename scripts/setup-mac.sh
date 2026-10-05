@@ -15,14 +15,34 @@ cd "${REPO_DIR}"
 GITHUB_REPO="${GITHUB_REPO:-minhdanh/telegram-mcp}"
 FORCE_BUILD=false
 
-for arg in "$@"; do
-  case $arg in
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     --build)
       FORCE_BUILD=true
       shift
       ;;
+    --install-dir)
+      INSTALL_DIR="$2"
+      shift 2
+      ;;
+    --config-dir)
+      CONFIG_DIR="$2"
+      shift 2
+      ;;
+    --help|-h)
+      echo "Usage: $0 [--build] [--install-dir <dir>] [--config-dir <dir>]"
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1"
+      echo "Usage: $0 [--build] [--install-dir <dir>] [--config-dir <dir>]"
+      exit 1
+      ;;
   esac
 done
+
+BINARY_PATH="${INSTALL_DIR}/telegram-mcp"
+CONFIG_PATH="${CONFIG_DIR}/config.yaml"
 
 echo "====================================================="
 echo " Telegram MCP Server - macOS Setup & Install"
