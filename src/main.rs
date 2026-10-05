@@ -83,10 +83,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Initialize shared in-memory ring buffer
     let buffer = MessageBuffer::new(config.buffer_size);
 
+    // Initialize Telegram bot client
+    let bot = teloxide::Bot::new(&config.telegram_bot_token);
+
     // Spawn Telegram ingestion task and MCP server task concurrently
     let telegram_config = Arc::clone(&config);
     let telegram_buffer = buffer.clone();
     let mcp_buffer = buffer.clone();
+    let mcp_bot = bot.clone();
+    let mcp_config = Arc::clone(&config);
 
     info!("Spawning Telegram ingestion and MCP server tasks...");
 
@@ -101,7 +106,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         }
 
         // Run MCP server task handling stdio JSON-RPC
-        mcp_res = mcp::run_mcp_server(mcp_buffer) => {
+        mcp_res = mcp::run_mcp_server(mcp_buffer, mcp_bot, mcp_config) => {
             if let Err(e) = mcp_res {
                 error!(error = %e, "MCP server task exited with error");
             } else {

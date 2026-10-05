@@ -197,6 +197,26 @@ Starting deployment v2.4.1 in production.
 
 ---
 
+### `send_telegram_message`
+
+Sends a message to a Telegram channel or chat. Use this to report delivery progress, notify the user of blockers, or dispatch alerts.
+
+#### Arguments
+
+| Argument | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `text` | string | **Yes** | - | The message text to send. |
+| `chat_id` | string | No | `default_chat_id` | Target chat ID (e.g. `"-1001234567890"`) or `@username`. If omitted, uses the default configured channel. |
+| `parse_mode` | string | No | `null` | Formatting style: `"Markdown"`, `"MarkdownV2"`, or `"HTML"`. |
+
+#### Example Tool Output
+
+```
+Successfully sent message to @example_channel (msg_id: 105)
+```
+
+---
+
 ## Running Tests
 
 Run all unit tests (ring buffer eviction, channel matching, config validation, MCP request handlers):

@@ -29,6 +29,11 @@ pub struct Config {
     /// Size of the in-memory ring buffer (default: 200)
     #[serde(default = "default_buffer_size")]
     pub buffer_size: usize,
+
+    /// Default Telegram chat ID or channel username for sending messages.
+    /// If omitted, the first entry in monitored_channels is used.
+    #[serde(default)]
+    pub default_chat_id: Option<String>,
 }
 
 impl Config {
@@ -125,6 +130,7 @@ buffer_size: 150
             telegram_bot_token: "test".to_string(),
             monitored_channels: vec!["@tech_news".to_string(), "-100999".to_string()],
             buffer_size: 100,
+            default_chat_id: None,
         };
 
         // Match by username with or without '@'
@@ -144,6 +150,7 @@ buffer_size: 150
             telegram_bot_token: "test".to_string(),
             monitored_channels: vec![],
             buffer_size: 100,
+            default_chat_id: None,
         };
 
         // Empty monitored_channels matches everything

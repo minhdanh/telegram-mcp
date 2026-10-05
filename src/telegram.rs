@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use teloxide::prelude::*;
-use teloxide::types::{AllowedUpdate, Message};
+use teloxide::types::{AllowedUpdate, ChatId, Message, ParseMode, Recipient};
 use tracing::{debug, info, warn};
 
 use crate::buffer::MessageBuffer;
@@ -102,12 +102,28 @@ pub async fn run_telegram_listener(
                     respond(())
                 },
             ),
+        )
+        .branch(
+            Update::filter_message().endpoint(
+                |msg: Message, buf: MessageBuffer, cfg: Arc<Config>| async move {
+                    handle_incoming_message(msg, buf, cfg, false).await;
+                    respond(())
+                },
+            ),
+        )
+        .branch(
+            Update::filter_edited_message().endpoint(
+                |msg: Message, buf: MessageBuffer, cfg: Arc<Config>| async move {
+                    handle_incoming_message(msg, buf, cfg, true).await;
+                    respond(())
+                },
+            ),
         );
 
     info!(
         monitored_channels = ?config.monitored_channels,
         buffer_size = config.buffer_size,
-        "Starting Telegram long-polling for channel posts..."
+        "Starting Telegram long-polling for messages and channel posts..."
     );
 
     use teloxide::update_listeners::Polling;
@@ -117,6 +133,8 @@ pub async fn run_telegram_listener(
         .allowed_updates(vec![
             AllowedUpdate::ChannelPost,
             AllowedUpdate::EditedChannelPost,
+            AllowedUpdate::Message,
+            AllowedUpdate::EditedMessage,
         ])
         .build();
 
@@ -170,4 +188,33 @@ async fn handle_incoming_message(
             "Received channel post with no extractable text or media caption"
         );
     }
+}
+
+/// Parse a string query (ID or username) into a teloxide `Recipient`.
+pub fn parse_recipient(input: &str) -> Recipient {
+    let trimmed = input.trim();
+    if let Ok(id) = trimmed.parse::<i64>() {
+        Recipient::Id(ChatId(id))
+    } else {
+        let channel_name = if trimmed.starts_with('@') {
+            trimmed.to_string()
+        } else {
+            format!("@{}", trimmed)
+        };
+        Recipient::ChannelUsername(channel_name)
+    }
+}
+
+/// Send a text message to a Telegram channel or chat.
+pub async fn send_telegram_message(
+    bot: &Bot,
+    recipient: Recipient,
+    text: &str,
+    parse_mode: Option<ParseMode>,
+) -> Result<Message, teloxide::RequestError> {
+    let mut req = bot.send_message(recipient, text);
+    if let Some(pm) = parse_mode {
+        req = req.parse_mode(pm);
+    }
+    req.await
 }

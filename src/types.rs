@@ -122,3 +122,11 @@ pub struct GetRecentChannelMessagesArgs {
     pub limit: Option<usize>,
     pub channel_name: Option<String>,
 }
+
+/// Arguments for `send_telegram_message` tool.
+#[derive(Debug, Clone, Deserialize)]
+pub struct SendTelegramMessageArgs {
+    pub text: String,
+    pub chat_id: Option<String>,
+    pub parse_mode: Option<String>,
+}

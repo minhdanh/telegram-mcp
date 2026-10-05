@@ -12,3 +12,7 @@ monitored_channels:
 # Maximum number of messages to retain in memory (ring buffer capacity).
 # Oldest messages will be dropped when capacity is exceeded.
 buffer_size: 200
+
+# Default Telegram chat ID or channel username for sending messages via send_telegram_message.
+# If omitted, the first entry in monitored_channels is used.
+default_chat_id: "@example_channel"
