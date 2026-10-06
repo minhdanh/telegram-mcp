@@ -218,3 +218,43 @@ pub async fn send_telegram_message(
     }
     req.await
 }
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct SimpleTelegramUpdate {
+    pub update_id: i64,
+    pub chat_id: i64,
+    pub text: Option<String>,
+}
+
+/// Fetch recent updates from Telegram with an optional offset and limit.
+pub async fn fetch_updates(
+    bot: &Bot,
+    offset: Option<i32>,
+    limit: Option<u8>,
+) -> Result<Vec<SimpleTelegramUpdate>, teloxide::RequestError> {
+    let mut req = bot.get_updates();
+    if let Some(off) = offset {
+        req = req.offset(off);
+    }
+    if let Some(lim) = limit {
+        req = req.limit(lim);
+    }
+    let updates = req.await?;
+    let mut results = Vec::new();
+    for u in updates {
+        let update_id = u.id.0 as i64;
+        let (chat_id, text) = match &u.kind {
+            teloxide::types::UpdateKind::Message(m) => (m.chat.id.0, extract_message_content(m)),
+            teloxide::types::UpdateKind::ChannelPost(m) => (m.chat.id.0, extract_message_content(m)),
+            teloxide::types::UpdateKind::EditedMessage(m) => (m.chat.id.0, extract_message_content(m)),
+            teloxide::types::UpdateKind::EditedChannelPost(m) => (m.chat.id.0, extract_message_content(m)),
+            _ => continue,
+        };
+        results.push(SimpleTelegramUpdate {
+            update_id,
+            chat_id,
+            text,
+        });
+    }
+    Ok(results)
+}
