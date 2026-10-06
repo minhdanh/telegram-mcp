@@ -38,7 +38,7 @@ enum Commands {
         #[arg(short, long)]
         text: String,
         /// Target chat ID or username (defaults to default_chat_id in config)
-        #[arg(long)]
+        #[arg(long, allow_hyphen_values = true)]
         chat_id: Option<String>,
         /// Parse mode: Markdown, MarkdownV2, HTML, or None
         #[arg(long, default_value = "Markdown")]
@@ -158,10 +158,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 };
 
                 let recipient = telegram::parse_recipient(target);
+                #[allow(deprecated)]
                 let pm = match parse_mode.as_str() {
                     "HTML" | "html" => Some(teloxide::types::ParseMode::Html),
                     "MarkdownV2" | "markdownv2" => Some(teloxide::types::ParseMode::MarkdownV2),
-                    "Markdown" | "markdown" => Some(teloxide::types::ParseMode::MarkdownV2),
+                    "Markdown" | "markdown" => Some(teloxide::types::ParseMode::Markdown),
                     _ => None,
                 };
 

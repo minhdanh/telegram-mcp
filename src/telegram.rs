@@ -212,11 +212,18 @@ pub async fn send_telegram_message(
     text: &str,
     parse_mode: Option<ParseMode>,
 ) -> Result<Message, teloxide::RequestError> {
-    let mut req = bot.send_message(recipient, text);
+    let mut req = bot.send_message(recipient.clone(), text);
     if let Some(pm) = parse_mode {
         req = req.parse_mode(pm);
     }
-    req.await
+    match req.await {
+        Ok(msg) => Ok(msg),
+        Err(e) if parse_mode.is_some() => {
+            warn!(error = %e, "Sending formatted message failed. Falling back to plain text.");
+            bot.send_message(recipient, text).await
+        }
+        Err(e) => Err(e),
+    }
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -239,6 +246,13 @@ pub async fn fetch_updates(
     if let Some(lim) = limit {
         req = req.limit(lim);
     }
+    req = req.allowed_updates(vec![
+        AllowedUpdate::Message,
+        AllowedUpdate::ChannelPost,
+        AllowedUpdate::EditedMessage,
+        AllowedUpdate::EditedChannelPost,
+    ]);
+    req = req.timeout(2);
     let updates = req.await?;
     let mut results = Vec::new();
     for u in updates {
