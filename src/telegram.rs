@@ -233,11 +233,12 @@ pub struct SimpleTelegramUpdate {
     pub text: Option<String>,
 }
 
-/// Fetch recent updates from Telegram with an optional offset and limit.
+/// Fetch recent updates from Telegram with an optional offset, limit, and channel filter.
 pub async fn fetch_updates(
     bot: &Bot,
     offset: Option<i32>,
     limit: Option<u8>,
+    channel_filter: Option<&str>,
 ) -> Result<Vec<SimpleTelegramUpdate>, teloxide::RequestError> {
     let mut req = bot.get_updates();
     if let Some(off) = offset {
@@ -257,13 +258,35 @@ pub async fn fetch_updates(
     let mut results = Vec::new();
     for u in updates {
         let update_id = u.id.0 as i64;
-        let (chat_id, text) = match &u.kind {
-            teloxide::types::UpdateKind::Message(m) => (m.chat.id.0, extract_message_content(m)),
-            teloxide::types::UpdateKind::ChannelPost(m) => (m.chat.id.0, extract_message_content(m)),
-            teloxide::types::UpdateKind::EditedMessage(m) => (m.chat.id.0, extract_message_content(m)),
-            teloxide::types::UpdateKind::EditedChannelPost(m) => (m.chat.id.0, extract_message_content(m)),
+        let (chat_id, text, username) = match &u.kind {
+            teloxide::types::UpdateKind::Message(m) => (m.chat.id.0, extract_message_content(m), m.chat.username()),
+            teloxide::types::UpdateKind::ChannelPost(m) => (m.chat.id.0, extract_message_content(m), m.chat.username()),
+            teloxide::types::UpdateKind::EditedMessage(m) => (m.chat.id.0, extract_message_content(m), m.chat.username()),
+            teloxide::types::UpdateKind::EditedChannelPost(m) => (m.chat.id.0, extract_message_content(m), m.chat.username()),
             _ => continue,
         };
+
+        if let Some(filter) = channel_filter {
+            let filter_clean = filter.trim();
+            let mut matches = false;
+            if let Ok(fid) = filter_clean.parse::<i64>() {
+                if fid == chat_id {
+                    matches = true;
+                }
+            }
+            if !matches {
+                let target = filter_clean.trim_start_matches('@').to_lowercase();
+                if let Some(uname) = username {
+                    if uname.to_lowercase() == target {
+                        matches = true;
+                    }
+                }
+            }
+            if !matches {
+                continue;
+            }
+        }
+
         results.push(SimpleTelegramUpdate {
             update_id,
             chat_id,

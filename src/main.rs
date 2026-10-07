@@ -52,6 +52,9 @@ enum Commands {
         /// Maximum number of updates to fetch
         #[arg(long, default_value_t = 10)]
         limit: u8,
+        /// Filter updates to a specific chat/channel ID or username
+        #[arg(long, allow_hyphen_values = true)]
+        channel: Option<String>,
     },
 }
 
@@ -181,10 +184,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     }
                 }
             }
-            Commands::Updates { offset, limit } => {
+            Commands::Updates { offset, limit, channel } => {
                 let bot = teloxide::Bot::new(&config.telegram_bot_token);
                 let offset_i32 = offset.map(|o| o as i32);
-                match telegram::fetch_updates(&bot, offset_i32, Some(limit)).await {
+                match telegram::fetch_updates(&bot, offset_i32, Some(limit), channel.as_deref()).await {
                     Ok(updates) => {
                         println!("{}", serde_json::to_string(&updates).unwrap_or_else(|_| "[]".to_string()));
                         return Ok(());
